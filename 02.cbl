@@ -19,8 +19,8 @@
                05 Opp PIC 9.
                05 FILLER PIC X.
                05 Own PIC 9.
-           01 EndPoints PIC 9(10) VALUE 0.
-           01 Points PIC 99 VALUE 0.
+           01 PointsPart1 PIC 9(10) VALUE 0.
+           01 PointsPart2 PIC 9(10) VALUE 0.
 
 
        PROCEDURE DIVISION.
@@ -30,15 +30,14 @@
                    READ DataFile INTO DataLine
                        AT END MOVE 1 TO EOF
                        NOT AT END
-                       MOVE 0 TO Points
                        PERFORM 100-RepString
-                       ADD Own TO Points
-                       PERFORM 200-CalcPoints
-                       ADD Points TO EndPoints
+                       PERFORM 200-CalcPointsPart1
+                       PERFORM 300-CalcPointsPart2
                    END-READ
                END-PERFORM.
            CLOSE DataFile.
-           DISPLAY "Part 1:" EndPoints
+           DISPLAY "Part 1: " PointsPart1
+           DISPLAY "Part 2: " PointsPart2
        STOP RUN
        .
 
@@ -51,12 +50,28 @@
            INSPECT DataLine REPLACING ALL 'Z' BY '3'
        .
 
-       200-CalcPoints.
+       200-CalcPointsPart1.
+           ADD Own TO PointsPart1
            IF Opp=Own THEN
-               ADD 3 TO Points
+               ADD 3 TO PointsPart1
            ELSE
-               IF Opp + 1=Own OR (Opp=3 AND Own=1) THEN
-                   ADD 6 TO Points
+               IF FUNCTION MOD(Opp, 3) + 1=Own THEN
+                   ADD 6 TO PointsPart1
+               END-IF
+           END-IF
+       .
+
+       300-CalcPointsPart2.
+           COMPUTE PointsPart2 = PointsPart2 + (Own - 1) * 3
+           IF Opp=2 THEN
+               ADD Own TO PointsPart2
+           ELSE
+               IF Opp=3 THEN
+                   COMPUTE PointsPart2
+                   = PointsPart2 + FUNCTION MOD(Own, 3) + 1
+               ELSE
+                   COMPUTE PointsPart2
+                   = PointsPart2 + FUNCTION MOD(Own + 1, 3) + 1
                END-IF
            END-IF
        .
